@@ -1,3 +1,7 @@
+Compile
+--------
+run script compile.sh
+
 Input file
 ----------
 1) reads file extern.inp to get 
