@@ -1,0 +1,65 @@
+Input file
+----------
+1) reads file extern.inp to get 
+    1st line) comment
+    2nd line) input kinematics file listing beam energy (GeV), scattered electron energy (GeV) and scattered electron angle (degrees)
+    3rd line) target file which has input parameters for code. 
+    4th line) output file with diagnostics information. The output file, extern.out , has the table of kinematics and radiatied cross sections.
+
+2) Note on input kinematics file: 
+    a) Code assumes that first six lines of file are comments. This reading is done in subroutine READIN_EXT
+    
+3) Notes on target file format
+    a) Has a very specific format read (see subroutine READIN_EXT) so must be careful about format.
+    b) First 3 line read into COMMENT array then skips a line
+    c) 5th and 6th lines read in IA and IZ with format 15x,i5 then skips a line
+    d) 8th and 9th lines read in AVGA and AVGM with format 15x,f14.8 then skips a line
+    e) 11th line reads in TARGET with format 20x,A7 then skips a line
+    f) 13th-16th line reads in ttarg,twall,tbeam,tspec with format 15x,f14.8
+    g) 17th lines reads NSEG with format 15x,i5 then skips 2 lines
+    h) 20th line reads IG  with format 15x,i5 then  skips a line
+    i) 22nd line reads IDUT with format 15x,i5
+    j) 23nd line reads INEL_MODEL with format 15x,i5
+    k) 24th line reads PAULI_MODEL  with format 15x,i5
+    l) 25th line reads NUC_METHOD  with format 15x,i5
+    m) 26th line reads NUC_MODEL  with format 15x,i5
+
+4) Notes on target file variables
+   a) IA and IZ are the atomic number and charge of target.
+   b) If AVGA and AVGM are zero then calculated in subroutine weiz. For A>4 uses
+      the Weisacker mass formula. 
+   c) TARGET is used for specific experiments hardwired in the code to set the target
+       radiation lengths in subroutine RADIATORS. If set to NONE, the radiation
+       lengths are set from input ttarg,twall,tbeam,tspec
+      Also the variable SMRDEP is set differently from default for certain experiments.
+   d) NSEG sets number of segments for the SIMPSON rule integration.
+
+5) Flow of the code
+   a) call ARENHOVEL_INIT . Original code needed access to /home/bosted/arenhovel/ directory.
+      copied /home/bosted/arenhovel to arenhovel. Modified subroutine to look.
+   b) open unit=17 file=extern.out
+      open unit=18 file=louk.out
+      open unit=19 file=ratioy.top which is a topdrawer file
+      open unit=29 file=ratiow2.top which is a topdrawer file
+   c) do loops to call R1998. Do not understand why this is done?
+   d) call READIN_EXT which reads the target file.
+   e) call RADLENGTH(X0) which calculates radiation length of target . Used to
+      calculate AX0  = 0.000154*izz/amuM*X0  which is common block RAD used in functions
+      and subroutines CONTINUUM, QETAIL, QEPEAK, EPEAK , FUNC1, FUNC2 , FUNC3, FUNC4P, FUNCQE, RADIATORS
+      BREMS, ATAILFL1, ATAILFL_QE
+   f) read in parm_to_use.txt which are parameters for Ioana's d2 model.
+   g) loops through call  PAULI_SUPPRESSION for fill psf1,psf2 . Does not seem that psf1,psf2 are used. Why is it done?
+   h) starts loop of kinematic points. Special flag introduced by Peter. For general case read input file to
+      get E0SET,EPSET,THSET with format (1x,3f10.3) and exits loop at end of file.
+   i) calls SECNUCLW calculates inelastic born cross section which calls INELAST to get W1 and W2. INELAST calls
+      F1F2IN09 if INEL_MODEL=4.
+   j) calls QUASIY8 which for IA >1 always uses CALL  F1F2QE09 to get F1 and F2.
+   k) 
+
+
+6) Updates
+   a) break code up into separate files and write a makefile.
+   b) modify READIN_EXT to a simpler read format.
+   c) create flag so ARENHOVEL_INIT is not always called.
+   d) create flag so parm_to_use.txt is only read in when needed.
+       
