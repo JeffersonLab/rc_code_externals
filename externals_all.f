@@ -12302,15 +12302,15 @@ c     >   7.5, 8.0, 8.5, 9.0, 9.5, 10./
        ELSE
         WRITE(QSQ_STR,'(F4.2)')QSQ_VAL(IQ)
        ENDIF
-       IN_FILE(1)='/u/home/bosted/arenhovel/arenhovel_v18_'
+       IN_FILE(1)='arenhovel/arenhovel_v18_'
      >   //QSQ_STR//'_T.dat'
-       IN_FILE(2) ='/u/home/bosted/arenhovel/arenhovel_bonn_' 
+       IN_FILE(2) ='arenhovel/arenhovel_bonn_' 
      >   //QSQ_STR//'_T.dat'
        if(QSQ_VAL(IQ).GT.10.0) THEN
          WRITE(QSQ_STR2,'(i2.2)')int(QSQ_VAL(IQ))
-         IN_FILE(1)='/u/home/bosted/arenhovel/Bosted_v18_'
+         IN_FILE(1)='arenhovel/Bosted_v18_'
      >     //QSQ_STR2//'_T.dat'
-         IN_FILE(2)='/u/home/bosted/arenhovel/Bosted_bonn_'
+         IN_FILE(2)='arenhovel/Bosted_bonn_'
      >     //QSQ_STR2//'_T.dat'
        endif
        DO IM=1,NMODEL
