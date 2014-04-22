@@ -117,7 +117,6 @@ c      DELTA = 0.001       ! for elastics
                                           
 ! xxx try making much smaller to get A(q2), q.e. at low Q2
 
-      write(6,'(''A b='',e11.3)') b
 
       REPS1 = 0.0002  !0.001  changed 21 Nov 00
       AEPS1 = 1.E-19                                                    
@@ -129,20 +128,11 @@ c      DELTA = 0.001       ! for elastics
                                                                         
       call ARENHOVEL_INIT()
 
-      write(6,'(1x,''got here'')')
       open(unit=17,file='extern.out')
-      open(unit=18,file='louk.out')
       open(unit=19,file='ratioy.top')
       open(unit=29,file='ratiow2.top')
       write(19,'(1x,''set device postscript portrait'')')
       write(29,'(1x,''set device postscript portrait'')')
-      write(18,1818)
- 1818 format(
-     >  1x,'                                   internal       ',
-     >  1x,'                     internal  + external'/
-     >  1x,'   E    Ep    Th     s_born      s_rad     s_elas',
-     >      '      s_dis      s_rad',
-     >     '     s_elas      s_dis')
 CCCC      CALL READIN(LEN_FILENAME,FILENAME)                                                       
 
       do i=1,4
@@ -150,21 +140,14 @@ CCCC      CALL READIN(LEN_FILENAME,FILENAME)
           x=0.1*i
           Q2=j
           CALL R1998(X,Q2,R,DR,GOOD)
-          write(6,'(1x,''x,q2,r,dr'',4f8.3)') x,q2,r,dr
         enddo
       enddo
 
-      write(6,'(1x,''got here'')')
-      write(6,'(''A b='',e11.3)') b
       CALL READIN_EXT()                                                       
 
-      write(6,'(1x,''got here'')')
-      write(6,'(''A b='',e11.3)') b
       CALL RADLENGTH(X0)                                                
-      write(6,'(''A b='',e11.3)') b
                                                                         
 c read in params for d2model
-           write(6,*)'Reading parameters for Ioana''s model'
            open(unit=77,file
      >          ='parm_to_use.txt'
      >          ,status='old')
@@ -187,7 +170,6 @@ c changed to uze iz=1 if neutron
       AX0  = 0.000154*izz/amuM*X0                                        
       BA   = 1.3667511                                                  
       AX0A =  .0017535                                                  
-      write(6,'(''b...'',5f10.3)') eta,b,ax0,ba,ax0a
 
 C     TASUM=0.                                                          
 C     TBSUM=0.                                                          
@@ -211,7 +193,6 @@ c check out pauli supp.
             call PAULI_SUPPRESSION(i-1,1,2,q2set,e0set,
      >        psf1(i),psf2(i))
           enddo
-          write(6,'(1x,12f5.2)') e0set,q2set,psf1,psf2
         enddo
       enddo
 
@@ -307,7 +288,7 @@ c     >      E0SET,EPSET,THSET
 c           READ(7,'(1X,2F6.3,F7.3)',END=100) E0SET,EPSET,THSET                
 c           READ(7,'(1X,F6.3,2F8.3)',END=100) E0SET,EPSET,THSET                
            READ(7,*,END=100) E0SET,EPSET,THSET                
-           write(6,'(1x,3f10.3)') E0SET,EPSET,THSET
+           Write(6,*) ' calculate kinematics =',E0SET,EPSET,THSET                
            IF (E0SET.LE.0.) GOTO 100                                    
         endif
 C          CALL INTERPOL(E0SET,EPSET,THSET)                             
@@ -327,7 +308,6 @@ ccc        if(dojan05.and.(w2 - w2last).lt.0.2 .and.w2.gt.1.3) goto 99
 cc           if(iA.lt.1.5.and.w2.le.1.17.and.(.not.smrelasp)) goto 99
 c           if(w2.le.0.) goto 99
            if(IA.gt.2.and.x.gt.float(ia).and.(.not.smrelasp)) then
-              write(*,*) ' skipping ',ia,x
                   goto 99
             endif
            if(x.gt.3.0) goto 99
@@ -391,14 +371,10 @@ C Born cross section:
            doing_elas = .true.
            sigma_elastic = 0.
            if(smrelasp) CALL QUASIY8(E0SET,EPSET,TH,SIGMA_elastic)
-           write(6,'(''elastic'',3f8.3,e11.3)') 
-     >       E0SET,EPSET,TH,SIGMA_elastic
            doing_elas = .false.
 
            prttst=.false.
 C          CALL  FYXSEC8(E0SET,EPSET,TH,SIGMA_CORR)                     
-           write(*,'(1x,''e,ep,th,sigb,sigqe='',3f8.2,2e12.4)')
-     >       E0SET,EPSET,TH,SIGMA_BORN,sigma_corr
 C Radiation length integral. Loop over internal and internal+external:  
 ! If eg1b type target, replace index 1 with results with ttarg/2.
            IF(INDEX(TARGET,'EG1b').GT.0 .or.
@@ -427,8 +403,6 @@ C Radiation length integral. Loop over internal and internal+external:
              SIGMA_INEL(1) = SIGMA_INEL(1)/TTARG                       
              SIGMA_QELA(1) = SIGMA_QELA(1)/TTARG  
              SIGMA_ELPK(1) = SIGMA_ELPK(1)/TTARG
-             write(6,'(''tst 1'',f7.3,3e11.4)') ttarg,
-     >         sigma_elpk(1) , sigma_qela(1) , sigma_inel(1)
              ttarg = ttarg * 2.0
            ELSE
              JTARG = 1                                                    
@@ -501,15 +475,11 @@ C PERM.    CALL SIMP(0.,TTARG,NSEG,   QEPEAK,SIGMA_QEPK(2))
 cc no longer used
            SIGMA_QE_PK_COS(2) = 0.
 cc           SIGMA_QE_PK_COS(2) = 0.001 *SIGMA_QE_PK_COS(2)  !pb->nb
-           write(*,111) ttarg,SIGMA_INEL(2), SIGMA_QELA(2),
-     >       SIGMA_QE_PK_COS(2), SIGMA_ELPK(2)
  111       format(1x,'ttarg,sig=',f8.4,4e11.3)
            SIGMA_INEL(2) = SIGMA_INEL(2)/TTARG                          
            SIGMA_QELA(2) = SIGMA_QELA(2)/TTARG  
 cc           SIGMA_QE_PK_COS(2) = SIGMA_QE_PK_COS(2)/TTARG                          
            SIGMA_ELPK(2) = SIGMA_ELPK(2)/TTARG                          
-             write(6,'(''tst 2'',f7.3,3e11.4)') ttarg,
-     >         sigma_elpk(2) , sigma_qela(2) , sigma_inel(2)
 ! Total inelastic (DIS + Res. + q.e.) born xsection
            SIGMA_BORNPLSQE = SIGMA_BORN+SIGMA_CORR
            DO 98 I=1,2                                                  
@@ -549,12 +519,6 @@ c    >          DELTA_ELPK(2), TOTAL(2), SIGMA_BORNPLSQE
      >          sigma_elpk(2)/ddnom,
      >          sigma_qela(2)/ddnom,
      >          sigma_inel(2)/ddnom
-      WRITE(*,'(1X,2f7.3,f6.2,5F8.2,F7.3/1x,2f7.3,F6.2,5f8.2,    
-     >           1PE10.3,/)') 
-     >    E0SET, TH, Q2SET, DELTA_QE_PK_COS(1),  DELTA_INEL(1),
-     >       DELTA_QELA(1), DELTA_ELPK(1), TOTAL(1), RAT_SMR,
-     >    EPSET,  x,    W2, DELTA_QE_PK_COS(2), DELTA_INEL(2),
-     >       DELTA_QELA(2), DELTA_ELPK(2), TOTAL(2), SIGMA_BORNPLSQE  
       sbsv(npts)= SIGMA_BORNPLSQE
       srsv(npts)= sigma_qela(2) + sigma_elpk(2) + sigma_inel(2)
       srqesv(npts) = sigma_qela(2)
@@ -576,14 +540,6 @@ c      write(17,'(36x,2e11.4)') sigma_born,sigma_corr
      >  max(0.,sigma_qela(1) + sigma_elpk(1) + sigma_inel(1)),
      >  max(0.,sigma_elastic)
 
-c      write(18,'(1x,4f10.3)') e0sv(npts),epsv(npts),thsv(npts),
-c     >  1./(1+total(2)/100.)
-
-      write(18,'(1x,f4.1,f6.2,f6.1,7e11.4)') 
-     >  e0sv(npts),epsv(npts),thsv(npts),
-     >  sbsv(npts),SIGMA_BORNPLSQE*(1+total(1)/100.),
-     >  sigma_elpk(1),sigma_inel(1),srsv(npts),
-     >  srelsv(npts),srinsv(npts)
  99   CONTINUE                                                          
 100   CONTINUE                                                          
       if(dojan05.or.dofromin.or.dosimona.or.donucr) then
@@ -868,11 +824,6 @@ C integral.
                                      
       QETAIL = ANS1 + ANS2 + ANS3 + ANS4                       
 
-      if(doing_elas) then
-        write(6,'(''q'',7f6.3,4e10.3)') t,e0,ep,eplo,ephi,
-     >    e0lo,e0hi,ans1, ans2,
-     >    ans3, ans4
-      endif
       RETURN                                                         
       END                                                               
                                                                         
@@ -1376,7 +1327,6 @@ c default for a simple target
       TAFTER=(ttarg-t)/cos(thr)       ! target/cos(th)
       TBAL= TBEAM                     ! material before the target
       TAAL= TSPEC                     ! material after the target
-      write(*,*) ttarg,tbefor,tafter,tbal,taal
       IF(INDEX(TARGET,'E154').GT.0) THEN                    
        CALL RADLEN154(TARGET,T,TH,TAFTER,TBAL,TAAL,TBEFOR)  
       ELSEIF(INDEX(TARGET,'E142').GT.0) THEN                                
@@ -1517,7 +1467,6 @@ c       actual density and material of target
         if(nprnt.le.6) write(*,123) tbal,tbefor,tafter,taal,cryo_cm
  123    format(1x,'TUNA rad len=',5f10.5)
       endif
-      write(*,*) '2',tbefor,tafter,tbal,taal
 
       ATBX0 = AX0*TBEFOR+AX0A*TBAL                                      
       ATAX0 = AX0*TAFTER+AX0A*TAAL                                      
@@ -4406,16 +4355,19 @@ c      OPEN(UNIT=20,FILE=FILENAME(1:LEN_FILENAME))
       OPEN(UNIT=7,FILE=EXTERNAL_RUNPLAN)  
       OPEN(UNIT=5,FILE=EXTERNAL_TARGET)     
 
+      doeg1b=.false.
       do i=1,6
         READ(7,'(a)') COMMENT(i)             
-        write(6,'(a)') comment(i)
       enddo
-      doeg1b=.false.
       if(comment(1)(1:4).eq.'EG1b' .or.
      >   comment(1)(2:5).eq.'EG1b') then
         doeg1b=.true.
         write(6,'(''using eg1b format'')')
+      else
+       close(7)
+       OPEN(UNIT=7,FILE=EXTERNAL_RUNPLAN)  
       endif
+ 
       READ(5,100) (COMMENT(i),i=4,6),                                   
      +            iZ,iA,                                                
      +            avgA,avgM,                                            
