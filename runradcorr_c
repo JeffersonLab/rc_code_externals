@@ -1,0 +1,11 @@
+cp input_kin_files/E4728_C_2.2_16.00.inp file.inp
+cp targ_files/targ.Crss file.targ
+./externals_all
+cp extern.out output_xn_files/E4728_C_2.2_16.00.out
+rm file.inp
+rm file.targ
+rm fort.98
+rm fort.16
+rm *.top
+rm nhd.*
+
