@@ -1,8 +1,27 @@
-Compile
---------
-run script compile.sh
+Compiling the code
+------------------
+run script compile.sh and creates exectuble : externals_all
 
-Input file
+
+Running the code
+-----------------
+An example script , runradcorr_c , shows how to run the code.
+The code reads the file, extern.inp, which has the format:
+    1st line) comment
+    2nd line) input kinematics file listing beam energy (GeV), scattered electron energy (GeV) and scattered electron angle (degrees)
+    3rd line) target file which has input parameters for code. 
+    4th line) output file with diagnostics information. The output file, extern.out , has the table of kinematics and radiatied cross sections.
+The script assumes that extern.inp is:
+input files for EXTERNAL: runplan/target/output
+file.inp
+file.targ
+tst.out
+
+
+
+
+
+Input files 
 ----------
 1) reads file extern.inp to get 
     1st line) comment
@@ -33,19 +52,30 @@ Input file
    b) If AVGA and AVGM are zero then calculated in subroutine weiz. For A>4 uses
       the Weisacker mass formula. 
    c) TARGET is used for specific experiments hardwired in the code to set the target
-       radiation lengths in subroutine RADIATORS. If set to NONE, the radiation
+       radiation lengths in subroutine RADIATORS. If set to "readin" ( or any name
+      that is not hadrcoded in subroutine RADIATORS) , the radiation
        lengths are set from input ttarg,twall,tbeam,tspec
       Also the variable SMRDEP is set differently from default for certain experiments.
-   d) NSEG sets number of segments for the SIMPSON rule integration.
+   d) NSEG sets number of segments for the SIMPSON rule integration. Nseg must be EVEN.
+   e) IG selects the elastic proton form factor model in subroutine NFORM ( see NFORM for list)
+      IG=15 use Bosted fit. Should be updated with more recent parametrizations.
+   f) IDUT selects the elastic deuteron form factor model in subroutine NUC_FORM_FACTOR.
+   g) INEL_MODEL selects inelastic cross section model in INELAST.
+      INEL_MODEL=4 selects F1F209 . Best option. Many older models available. 
+   h) PAULI_MODEL sets model in subroutine PAULI_SUPPRESSION.
+      0= old stein model; 1=tsai model; 2 no suppression
+      F1F2QE09 uses Pauli suppression model from Tsai RMP 46,816(74) eq.B54 
+   i) NUC_METHOD 0=No cos(theta_k) integration;  1= cos(th_k) integration
+   j) NUC_MODEL  not used if INEL_MODEL=4.
 
-5) Flow of the code
+ Flow of the code
+------------------
    a) call ARENHOVEL_INIT . Original code needed access to /home/bosted/arenhovel/ directory.
-      copied /home/bosted/arenhovel to arenhovel. Modified subroutine to look.
+      copied /home/bosted/arenhovel to arenhovel. Modified subroutine to look at arenhovel directory .
    b) open unit=17 file=extern.out
-      open unit=18 file=louk.out
       open unit=19 file=ratioy.top which is a topdrawer file
       open unit=29 file=ratiow2.top which is a topdrawer file
-   c) do loops to call R1998. Do not understand why this is done?
+   c) do loop to call R1998. Do not understand why this is done?
    d) call READIN_EXT which reads the target file.
    e) call RADLENGTH(X0) which calculates radiation length of target . Used to
       calculate AX0  = 0.000154*izz/amuM*X0  which is common block RAD used in functions
@@ -55,13 +85,46 @@ Input file
    g) loops through call  PAULI_SUPPRESSION for fill psf1,psf2 . Does not seem that psf1,psf2 are used. Why is it done?
    h) starts loop of kinematic points. Special flag introduced by Peter. For general case read input file to
       get E0SET,EPSET,THSET with format (1x,3f10.3) and exits loop at end of file.
-   i) calls SECNUCLW calculates inelastic born cross section which calls INELAST to get W1 and W2. INELAST calls
+   Looping through kinematic points
+   i) calls SECNUCLW calculates inelastic born cross section, SIGMA_BORN, which calls INELAST to get W1 and W2. INELAST calls
       F1F2IN09 if INEL_MODEL=4.
-   j) calls QUASIY8 which for IA >1 always uses CALL  F1F2QE09 to get F1 and F2.
-   k) 
+   j) calls QUASIY8 calculate QE born cross section, SIGMA_CORR, which for IA >1 always uses CALL  F1F2QE09 to get F1 and F2.
+   k) if smrelasp==.true. calls QUASIY8 to get smeared elastic born cross section, sigma_elastic
+   l) set JTARG=1 which is flag in RADIATORS to calculate equivalent radiator for internal radiation
+   m)  SIGMA_INEL(1) = CONTINUUM(0.)
+   n)  SIGMA_QELA(1) = QETAIL(0.)
+   o)  if smrelasp==.true. SIGMA_ELPK(1) = QETAIL(0.) else 
+       if NUC_METHOD.EQ.0 then SIGMA_ELPK(1) = EPEAK(0.)
+       elseif NUC_METHOD.EQ.1 then SIGMA_ELPK(1) = 0.001*ATAILFL1(0.)
+   p) set JTARG=2 calculate internal+external radiation cross section
+   q) get inelastic crossection CALL SIMP(0.,TTARG,NSEG,CONTINUUM,SIGMA_INEL(2))  numerical integration using Simpson's rule using
+       the function CONTINUUM 
+   r) get QE cross section CALL SIMP(0.,TTARG,NSEG,   QETAIL,SIGMA_QELA(2))
+   o)  if smrelasp==.true. CALL SIMP(0.,TTARG,NSEG,   QETAIL,SIGMA_ELPK(2)) else 
+       if NUC_METHOD.EQ.0 then CALL SIMP(0.,TTARG,NSEG,EPEAK,SIGMA_ELPK(2))
+       elseif NUC_METHOD.EQ.1 then CALL SIMP(0.,TTARG,NSEG,ATAILFL1,SIGMA_ELPK(2)) 
+   s)  SIGMA_INEL(2) = SIGMA_INEL(2)/TTARG                          
+       SIGMA_QELA(2) = SIGMA_QELA(2)/TTARG  
+       SIGMA_ELPK(2) = SIGMA_ELPK(2)/TTARG 
+   t)  write to extern.out
+       beam energy, scattered electron energy, scattered electron angle, x, q2,SIGMA_BORN+SIGMA_CORR,  
+       sigma_qela(2) + sigma_elpk(2) + sigma_inel(2),sigma_elpk(2),sigma_qela(2),sigma_inel(2),
+       SIGMA_BORN,iesv,iqsv,iwsv,sigma_qela(1) + sigma_elpk(1) + sigma_inel(1),sigma_elastic
+
+       iesv,iqsv,iwsv filled when doeg1b flag is true
+       
+ 
+Modifications
+---------------
+   a) subroutine READIN_EXT . Modify so that in read the first six lines of kinematic input file
+      to check for comments. If comment contains EG1b, then set  doeg1b=.true. and continue.
+      Otherwise close and reopen file, assuming that it is a list of numbers.
+   b) Eliminate the write statements to terminal except for kinematics when looping thru file.
+   c) Remove writing out to louk.out 
 
 
-6) Updates
+Future Updates
+--------------
    a) break code up into separate files and write a makefile.
    b) modify READIN_EXT to a simpler read format.
    c) create flag so ARENHOVEL_INIT is not always called.
