@@ -1,34 +1,43 @@
-hydorgen 4%
-RSS                                       
+Carbon 3.524% 
+RSS
 ----*----1----*----2----*----3----*----4----*----5----*----6----*----7---
                                                                          
-iZ    (#)          1                                                     
-iA    (#)          1                                                     
+iZ    (#)          6                                                     
+iA    (#)         12                                                     
                                                                          
 avgA  (#)                                                                
 avgM (GeV)                                                               
                                                                          
-target type         readin    : columns 21-27                                         
-thicknesses (rad. lengths):
-   target          0.04000     
-   walls           0.00001                                               
-   pre-target      0.0101      
-   post-target     0.00001
-nseg (even)        4
+target type         readin     : columns 21-27         
+thicknesses (rad. lengths):                                              
+   target          0.03524    
+   walls           0.000001                                              
+   pre-target      0.00933              
+   post-target     0.00943                  
+nseg (even)        4                                                     
                                                                          
 
 ikk               15  elastic nucleon model                              
 
 idut              13 elastic d2 model: 0=old, 11,12,13,14=Ulmar(below    
-inel_model         4  keep at 4 to use F1F209.
+inel_model         4  inelastc h2 modl: 0=ineft(Bodek);9,12=Stuart+F2Glob etc.
 pauli_model        1  0= old stein model; 1=tsai model; 2 no suppression
 Nuc Tail Method    1  0=No cos(theta_k) integration;  1= cos(th_k) integration
 Nuc FormFac Mdl    1  0=Shell,Gauss, 1=Hicks for Si28 and O16
 
-! INEL_MODEL inelastc h2 modl: 0=ineft(Bodek);9,12=Stuart+F2Glob 
-!                                             1=f2nmc(DIS),ineft(RES)  
+! INEL_MODEL inelastc h2 modl: 4 use F1F209 
+!                 0=ineft(Bodek);9,12=Stuart+F2Glob 
+!                 1=f2nmc(DIS),ineft(RES)  
 !            **OR**
-! INEL_MODEL =  4 F1F209
+! INEL_MODEL =rrdd where rr is resonance model number and dd is DIS model 
+!             It must be >=100
+! DIS_MODEL= 1 ineft
+!            2 f2nmc
+!            3 f2nmc95
+!            9 f2glob model 9
+!           12 f2glob model 12
+! RES_MODEL  1 ineft
+!            2 H2Model           
 ------------------------------------------------------------------------ 
                                                                          
 FIRST TWO LINES ARE FOR USER COMMENTS.                                   
@@ -49,12 +58,13 @@ to +/-.002 GeV elsewhere.
 target type = TARGET is used for specific experiments hardwired in the code to set the target
        radiation lengths in subroutine RADIATORS. If set to "readin" ( or any name
       that is not hadrcoded in subroutine RADIATORS) , the radiation
-       lengths are set from input                                          
-Nseg = number of target segments for integral. Nseg must be EVEN. 
-       if neg=0 only internal corrections calculated.       
+       lengths are set from input                 
+                                          
+                                         
+Nseg = number of target segments for integral. Nseg must be EVEN. If     
+       zero, default value is 4.                                         
                                                                          
-Ikk  = model number for NFORM.  15 is Bosted parametrization                          
-
+Ikk  = model number for NFORM.   15 is Bosted parametrization.                     
 idut = selects d2 model: 0=what came with Bardin program                 
                         11=Ulmar fit to Tjon model with impulse approx   
                         12 Ulmar                    ia +mec              
